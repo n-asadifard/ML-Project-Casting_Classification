@@ -191,12 +191,40 @@ def parse_manifest_line(line):
     return filepath, label
 
 
-def load_and_preprocess(filepath, label, img_size):    
+def load_image(filepath, img_size):
+    """Decode -> grayscale -> resize -> [0, 1]. Shared by training, evaluation and inference."""
     img = tf.io.decode_image(tf.io.read_file(filepath), channels=1, expand_animations=False)
     img = tf.image.resize(img, img_size)
     img = tf.cast(img, tf.float32) / 255.0
     img.set_shape((*img_size, 1))
-    return img, tf.cast(label, tf.float32)
+    return img
+
+
+def load_and_preprocess(filepath, label, img_size):
+    return load_image(filepath, img_size), tf.cast(label, tf.float32)
+
+
+def make_dataset(manifest_path, img_size, batch_size: int,
+                 training: bool = False, augmenter=None, seed: int = 42) -> tf.data.Dataset:
+    """One pipeline for every split. Only training=True shuffles and augments."""
+    if augmenter is not None and not training:
+        raise ValueError("An augmenter is only allowed for the training split (training=True)")
+
+    manifest_path = Path(manifest_path)
+    n = len(pd.read_csv(manifest_path))
+    img_size = tuple(int(s) for s in img_size)
+
+    ds = (tf.data.TextLineDataset(str(manifest_path)).skip(1)
+          .map(parse_manifest_line, num_parallel_calls=tf.data.AUTOTUNE)
+          .map(lambda p, y: load_and_preprocess(p, y, img_size), num_parallel_calls=tf.data.AUTOTUNE)
+          .cache())
+    if training:
+        ds = ds.shuffle(n, seed=seed, reshuffle_each_iteration=True)
+    ds = ds.batch(batch_size)
+    if training and augmenter is not None:
+        ds = ds.map(lambda x, y: (tf.clip_by_value(augmenter(x, training=True), 0.0, 1.0), y),
+                    num_parallel_calls=tf.data.AUTOTUNE)
+    return ds.prefetch(tf.data.AUTOTUNE)
 
 
 def set_trainable(model: keras.Model, freeze_all: bool, n_unfreeze: int | None = None) -> None:

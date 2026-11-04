@@ -1,0 +1,43 @@
+{
+    "threshold": 0.49999999999999994,
+    "val": {
+        "threshold": 0.49999999999999994,
+        "n": 130,
+        "confusion_matrix": [
+            [
+                52,
+                0
+            ],
+            [
+                0,
+                78
+            ]
+        ],
+        "accuracy": 1.0,
+        "precision_defect": 1.0,
+        "recall_defect": 1.0,
+        "f1_defect": 1.0,
+        "roc_auc": 1.0,
+        "pr_auc": 1.0
+    },
+    "test": {
+        "threshold": 0.49999999999999994,
+        "n": 130,
+        "confusion_matrix": [
+            [
+                52,
+                0
+            ],
+            [
+                1,
+                77
+            ]
+        ],
+        "accuracy": 0.9923076923076923,
+        "precision_defect": 1.0,
+        "recall_defect": 0.9871794871794872,
+        "f1_defect": 0.9935483870967742,
+        "roc_auc": 1.0,
+        "pr_auc": 1.0
+    }
+}
