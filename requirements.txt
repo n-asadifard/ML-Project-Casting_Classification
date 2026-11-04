@@ -15,4 +15,8 @@ types-PyYAML
 scipy
 Flask
 Flask-Cors
+kaggle
+scikit-learn
+tensorboard
+nvidia-cudnn-cu12==9.10.2.21
 -e .

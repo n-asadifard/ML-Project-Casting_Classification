@@ -5,17 +5,25 @@ data_ingestion:
   source_URL: "ravirajsinh45/real-life-industrial-dataset-of-casting-product"
   local_data_file: artifacts/data_ingestion/real-life-industrial-dataset-of-casting-product.zip
   unzip_dir: artifacts/data_ingestion
-
+  dataset_dir: artifacts/data_ingestion/casting_512x512/casting_512x512
+  manifest_path: artifacts/splits
 
 
 prepare_base_model:
   root_dir: artifacts/prepare_base_model
-  base_model_path: artifacts/prepare_base_model/base_model.h5
-  updated_base_model_path: artifacts/prepare_base_model/base_model_updated.h5
-
+  base_model_path: artifacts/prepare_base_model/base_model.keras
+  updated_base_model_path: artifacts/prepare_base_model/base_model_updated.keras
+  manifest_path: artifacts/splits
 
 
 prepare_callbacks:
   root_dir: artifacts/prepare_callbacks
   tensorboard_root_log_dir: artifacts/prepare_callbacks/tensorboard_log_dir
-  checkpoint_model_filepath: artifacts/prepare_callbacks/checkpoint_dir/model.h5
+  checkpoint_phase1_filepath: artifacts/prepare_callbacks/checkpoint_dir/phase1_best.weights.h5
+  checkpoint_phase2_filepath: artifacts/prepare_callbacks/checkpoint_dir/phase2_best.weights.h5
+
+
+training:
+  root_dir: artifacts/training
+  splits_dir: artifacts/splits
+  trained_model_path: artifacts/training/model.keras

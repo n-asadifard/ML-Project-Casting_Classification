@@ -1,6 +1,12 @@
 from cnnClassifier.constants import *
 from cnnClassifier.utils.common import read_yaml, create_directories
-from cnnClassifier.entity.config_entity import DataIngestionConfig, KaggleToken, PrepareBaseModelConfig, PrepareCallbacksConfig
+from cnnClassifier.entity.config_entity import (DataIngestionConfig,
+                                                KaggleToken,
+                                                ImageData,
+                                                PrepareBaseModelConfig,
+                                                PrepareBaseModelParams,
+                                                PrepareCallbacksConfig
+                                                )
 import os
 
 
@@ -25,41 +31,73 @@ class ConfigurationManager:
         create_directories([config.root_dir])
 
         data_ingestion_config = DataIngestionConfig(
-            root_dir=config.root_dir,
+            root_dir=Path(config.root_dir),
             source_URL=config.source_URL,
-            local_data_file=config.local_data_file,
-            unzip_dir=config.unzip_dir 
+            local_data_file=Path(config.local_data_file),
+            unzip_dir=Path(config.unzip_dir),
+            dataset_dir=Path(config.dataset_dir),
+            manifest_path=Path(config.manifest_path)
         )
 
         return data_ingestion_config
 
+    
     def get_data_ingestion_secrets(self) -> KaggleToken:
         secrets = self.secrets.kaggle_secrets
 
-        get_data_ingestion_secrets = KaggleToken(
+        data_ingestion_secrets = KaggleToken(
             username=secrets.username,
             key=secrets.key
         )
 
-        return get_data_ingestion_secrets
+        return data_ingestion_secrets
+    
+    
+    def get_data_ingestion_cls_idx(self) -> ImageData:
+        params = self.params
 
-    def get_prepare_base_model_config(self) -> PrepareBaseModelConfig:
-        config = self.config.prepare_base_model
-        
-        create_directories([config.root_dir])
-
-        prepare_base_model_config = PrepareBaseModelConfig(
-            root_dir=Path(config.root_dir),
-            base_model_path=Path(config.base_model_path),
-            updated_base_model_path=Path(config.updated_base_model_path),
-            params_image_size=self.params.IMAGE_SIZE,
-            params_learning_rate=self.params.LEARNING_RATE,
-            params_include_top=self.params.INCLUDE_TOP,
-            params_weights=self.params.WEIGHTS,
-            params_classes=self.params.CLASSES
+        data_ingestion_cls_idx = ImageData(
+            CLASS_TO_IDX = params.CLASS_TO_IDX,
+            IMG_EXTNS = params.IMG_EXTNS
         )
 
-        return prepare_base_model_config
+        return data_ingestion_cls_idx
+    
+    ##################################################################################################
+    
+    def get_prepare_base_model_config(self) -> PrepareBaseModelConfig:
+            config = self.config.prepare_base_model
+            
+            create_directories([config.root_dir])
+    
+            prepare_base_model_config = PrepareBaseModelConfig(
+                root_dir = Path(config.root_dir),
+                base_model_path = Path(config.base_model_path),
+                updated_base_model_path = Path(config.updated_base_model_path),
+                manifest_path = Path(config.manifest_path)
+            )
+            return prepare_base_model_config
+    
+        
+    def get_prepare_base_model_params(self) -> PrepareBaseModelParams:
+        params = self.params        
+        prepare_base_model_params = PrepareBaseModelParams(
+            IMG_SIZE=params.IMG_SIZE,
+            BATCH_SIZE=params.BATCH_SIZE,
+            INCLUDE_TOP=params.INCLUDE_TOP,
+            EPOCHS_P1=params.EPOCHS_P1,
+            EPOCHS_P2=params.EPOCHS_P2,            
+            TRAINING=params.TRAINING,
+            LEARNINGRATE_P1=params.LEARNINGRATE_P1,
+            LEARNINGRATE_P2=params.LEARNINGRATE_P2,
+            DROPOUT=params.DROPOUT,
+            ROTATION_FACTOR=params.ROTATION_FACTOR,
+            BRIGHTNESS_FACTOR=params.BRIGHTNESS_FACTOR,
+            CONTRAST_FACTOR=params.CONTRAST_FACTOR
+            )
+        return prepare_base_model_params
+
+    ##################################################################################################
 
     def get_prepare_callback_config(self) -> PrepareCallbacksConfig:
         config = self.config.prepare_callbacks
@@ -76,3 +114,7 @@ class ConfigurationManager:
         )
 
         return prepare_callback_config
+    
+    ##################################################################################################
+
+    

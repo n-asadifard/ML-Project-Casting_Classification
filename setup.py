@@ -22,7 +22,7 @@ def get_requirements(file_path:str)->List[str]:
 
 __version__ = "0.0.0"
 
-REPO_NAME = "    ML-Project-Casting_Classifier"
+REPO_NAME = "    ML-Project-Casting_Classification"
 AUTHOR_USER_NAME = "n-asadifard"
 SRC_REPO = "cnnClassifier"
 AUTHOR_EMAIL = "n.asadifard1990@gmail.com"
