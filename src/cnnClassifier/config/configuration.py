@@ -2,7 +2,7 @@ import time
 import tensorflow as tf
 from cnnClassifier.constants import *
 from cnnClassifier.utils.common import read_yaml, create_directories
-from cnnClassifier.entity.config_entity import (
+from cnnClassifier.entity.config_entity import (DataIngestionConfig,
                                                 KaggleToken,
                                                 ImageData,
                                                 PrepareBaseModelConfig,
@@ -20,6 +20,22 @@ class ConfigurationManager:
         self.config = read_yaml(config_filepath)
         self.params = read_yaml(params_filepath)
         create_directories([self.config.artifacts_root])
+
+    def get_data_ingestion_config(self) -> DataIngestionConfig:
+            config = self.config.data_ingestion
+    
+            create_directories([config.root_dir])
+    
+            data_ingestion_config = DataIngestionConfig(
+                root_dir=Path(config.root_dir),
+                source_URL=config.source_URL,
+                local_data_file=Path(config.local_data_file),
+                unzip_dir=Path(config.unzip_dir),
+                dataset_dir=Path(config.dataset_dir),
+                manifest_path=Path(config.manifest_path)
+            )
+    
+            return data_ingestion_config
 
     def get_data_ingestion_secrets(self) -> KaggleToken:
         # read lazily: only stage 01 needs this file, and it must not exist as a dependency elsewhere
@@ -141,7 +157,7 @@ class ConfigurationManager:
                 report_path=Path(c.report_path),
                 metadata_path=Path(c.metadata_path),
             )
-    
+            
     
     def get_evaluation_params(self) -> EvaluationParams:
         p = self.params
