@@ -33,6 +33,5 @@ evaluation:
   root_dir: artifacts/evaluation
   splits_dir: artifacts/splits
   trained_model_path: artifacts/training/model.keras
-  report_path: artifacts/evaluation/report.json
+  report_path: reports/report.json
   metadata_path: artifacts/evaluation/model_metadata.json
-

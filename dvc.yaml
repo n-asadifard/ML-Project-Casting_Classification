@@ -1,0 +1,88 @@
+stages:
+  data_ingestion:
+    cmd: python src/cnnClassifier/pipeline/stage_01_data_ingestion.py
+    deps:
+      - src/cnnClassifier/pipeline/stage_01_data_ingestion.py
+      - src/cnnClassifier/components/data_ingestion.py
+    params:
+      - CLASS_TO_IDX
+      - IMG_EXTNS
+      - TRAIN_RATIO
+      - VAL_RATIO
+      - TEST_RATIO
+      - SEED
+      - config/config.yaml:
+          - data_ingestion
+    outs:
+      - artifacts/data_ingestion/casting_512x512
+      - artifacts/splits
+
+  prepare_base_model:
+    cmd: python src/cnnClassifier/pipeline/stage_02_prepare_base_model.py
+    deps:
+      - src/cnnClassifier/pipeline/stage_02_prepare_base_model.py
+      - src/cnnClassifier/components/prepare_base_model.py
+      - src/cnnClassifier/utils/common.py
+    params:
+      - IMG_SIZE
+      - INCLUDE_TOP
+      - DROPOUT
+      - config/config.yaml:
+          - prepare_base_model
+    outs:
+      - artifacts/prepare_base_model
+
+  training:
+    cmd: python src/cnnClassifier/pipeline/stage_03_training.py
+    deps:
+      - src/cnnClassifier/pipeline/stage_03_training.py
+      - src/cnnClassifier/components/training.py
+      - src/cnnClassifier/components/prepare_callbacks.py
+      - src/cnnClassifier/utils/common.py
+      - artifacts/data_ingestion/casting_512x512
+      - artifacts/splits
+      - artifacts/prepare_base_model
+    params:
+      - IMG_SIZE
+      - BATCH_SIZE
+      - EPOCHS_P1
+      - EPOCHS_P2
+      - LEARNINGRATE_P1
+      - LEARNINGRATE_P2
+      - WARMUP_EPOCHS_P1
+      - WARMUP_EPOCHS_P2
+      - N_UNFREEZE
+      - PATIENCE
+      - ROTATION_FACTOR
+      - BRIGHTNESS_FACTOR
+      - CONTRAST_FACTOR
+      - SEED
+      - config/config.yaml:
+          - training
+          - prepare_callbacks
+          - prepare_base_model
+    outs:
+      - artifacts/training/model.keras
+      - artifacts/prepare_callbacks/checkpoint_dir
+
+  evaluation:
+    cmd: python src/cnnClassifier/pipeline/stage_04_evaluation.py
+    deps:
+      - src/cnnClassifier/pipeline/stage_04_evaluation.py
+      - src/cnnClassifier/components/evaluation.py
+      - src/cnnClassifier/utils/common.py
+      - artifacts/data_ingestion/casting_512x512
+      - artifacts/splits
+      - artifacts/training/model.keras
+    params:
+      - IMG_SIZE
+      - BATCH_SIZE
+      - CLASS_TO_IDX
+      - THRESHOLD_BETA
+      - config/config.yaml:
+          - evaluation
+    outs:
+      - artifacts/evaluation/model_metadata.json
+    metrics:
+      - reports/report.json:
+          cache: false

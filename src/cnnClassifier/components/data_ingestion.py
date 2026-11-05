@@ -61,9 +61,9 @@ class DataIngestion:
     @staticmethod
     def stratified_train_val_test_split(                                        
                                         df: pd.DataFrame,
-                                        train_ratio: float = 0.8,
-                                        val_ratio: float = 0.1,
-                                        test_ratio: float = 0.1,
+                                        train_ratio: float,
+                                        val_ratio: float,
+                                        test_ratio: float,
                                         label_col: str = "label",
                                         seed: int = 42,
                                         ):

@@ -1,6 +1,4 @@
-import os
-import urllib.request as request
-from zipfile import ZipFile
+from pathlib import Path
 import tensorflow as tf
 import time
 from cnnClassifier.entity.config_entity import PrepareCallbacksConfig
@@ -10,28 +8,22 @@ class PrepareCallback:
     def __init__(self, config: PrepareCallbacksConfig):
         self.config = config
 
+    def _checkpoint_path(self, phase: int) -> Path:
+        return {1: self.config.checkpoint_phase1_filepath,
+                2: self.config.checkpoint_phase2_filepath}[phase]
 
-    
-    @property
-    def _create_tb_callbacks(self):
+    def get_callbacks(self, phase: int, patience: int = 5) -> list:
+        if phase not in (1, 2):
+            raise ValueError("phase must be 1 or 2")
         timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-        tb_running_log_dir = os.path.join(
-            self.config.tensorboard_root_log_dir,
-            f"tb_logs_at_{timestamp}",
-        )
-        return tf.keras.callbacks.TensorBoard(log_dir=tb_running_log_dir)
-    
-
-    @property
-    def _create_ckpt_callbacks(self):
-        return tf.keras.callbacks.ModelCheckpoint(
-            filepath=self.config.checkpoint_model_filepath,
-            save_best_only=True
-        )
-
-
-    def get_tb_ckpt_callbacks(self):
+        tb_dir = Path(self.config.tensorboard_root_log_dir) / f"phase{phase}" / f"tb_logs_at_{timestamp}"
         return [
-            self._create_tb_callbacks,
-            self._create_ckpt_callbacks
+            tf.keras.callbacks.TensorBoard(log_dir=str(tb_dir)),
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=str(self._checkpoint_path(phase)),
+                monitor="val_loss", mode="min",
+                save_best_only=True, save_weights_only=True),   # the phase handoff file
+            tf.keras.callbacks.EarlyStopping(
+                monitor="val_loss", mode="min",
+                patience=patience, restore_best_weights=True),
         ]
